@@ -1,0 +1,209 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <style>
+                @import url("sample.css");
+                </style>
+            <title>Translation from Logical address to Physical Address</title>
+            <script type="application/x-javascript">
+​
+​
+                var width = 30;
+                var scale = 2;
+                var address = 0;
+                var vmsize = 7;
+                var psize = 4096;
+                var pagetableString = "";
+                var pagetable = new Array(7);
+​
+                var llow;
+                var lhigh;
+                var plow;
+                var phigh;
+​
+                for(var i=0;i<vmsize;i++) {
+                    var v = Math.floor(Math.random()*vmsize);
+                    pagetable[i] = v;
+                    pagetableString += v.toString(16) +"\n";
+                }
+​
+​
+​
+​
+            function draw() {
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+                //canvas.ontouchmove = TouchXY;
+                ctx.strokeStyle = "black";
+                memory(ctx,10,10);
+                memory(ctx,250,10);
+                pointer(ctx,80,50);
+                pointer(ctx,170,50);
+                page(ctx, 130,120);
+​
+​
+            }
+​
+            function text(name,text,x,y)
+            {
+                // ctx.fillText(text,x*scale,y*scale);
+                var X=document.body.scrollLeft+x*scale;
+                var Y=document.body.scrollTop+y*scale;
+                document.all[name].style.left=X+20;
+                document.all[name].style.top=Y-5;
+                document.all[name].innerText=text;
+            }
+​
+​
+            function MouseXY()
+            {
+                var x = event.x/scale;
+                var y = event.y/1;
+                XY(x,y);
+            }
+​
+            function TouchXY()
+            {
+                var canvas = document.getElementById("canvas");
+                var x =  event.pageX - canvas.offsetLeft;
+                var y =  event.pageY - canvas.offsetTop
+                XY(x,y);
+            }
+​
+​
+            function XY(x,y)
+            {
+                if (10<=x&&x<=110&&10<=y&&y<=290) {
+                    var canvas = document.getElementById("canvas");
+                    var ctx = canvas.getContext("2d");
+                    ctx.clearRect(10,10,10+60,410);
+                    memory(ctx,10,10);
+                    ctx.clearRect(250*scale,10,250*scale+60,410);
+                    memory(ctx,250,10);
+                    //add to
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+​
+                    memory(ctx,10,10);
+                    memory(ctx,250,10);
+                    pointer(ctx,80,50);
+                    pointer(ctx,170,50);
+                    page(ctx, 130,120);
+​
+                    ctx.beginPath();
+                    ctx.strokeStyle = "red";
+                    ctx.moveTo(60,y);
+                    ctx.lineTo(160,60);
+                    ctx.closePath();
+                    ctx.stroke();
+​
+​
+​
+                    strokeRect(ctx,10,y,10+width,y+2);
+                    address = (y-10)*100;
+                    physical = translate(address);
+                    y = physical/100+10;
+                    strokeRect(ctx,250,y,250+width,y+2);
+​
+                    //Add To
+​
+​
+                    ctx.beginPath();
+​
+                    ctx.moveTo(530,y);
+                    ctx.lineTo(460,60);
+                    ctx.closePath();
+                    ctx.stroke();
+​
+                    ctx.beginPath();
+​
+                    ctx.moveTo(370,70);
+                    ctx.lineTo(320,130+20*(lhigh));
+                    ctx.closePath();
+                    ctx.stroke();
+​
+                    ctx.beginPath();
+​
+                    ctx.moveTo(180,70);
+                    ctx.lineTo(260,130+20*lhigh);
+                    ctx.closePath();
+                    ctx.stroke();
+​
+                    ctx.strokeStyle = "black";
+​
+                    update1();
+                }
+            }
+​
+​
+            function update1()
+            {
+                text("Logical","logical address = 0x"+address.toString(16),10,157);
+                text("Physical","physical address = 0x"+physical.toString(16),250,157);
+                text("Pagetable",pagetableString,130,70);
+                text("lhigh",lhigh.toString(16),90,32);
+                text("llow",llow.toString(16),120,32);
+                text("phigh",phigh.toString(16),90+90,32);
+                text("plow",plow.toString(16),120+90,32);
+            }
+​
+            function translate(adr)
+            {
+                lhigh = Math.floor(adr/psize);
+                llow = adr%psize;
+                phigh = pagetable[lhigh];
+                plow = llow;
+                return phigh*psize+plow;
+            }
+​
+            function strokeRect(ctx,x,y,x1,y1)
+            {
+                return ctx.strokeRect(x*scale,y,(x1-x)*scale,(y1-y)*scale);
+            }
+​
+            function pointer(ctx,x,y) {
+                var dy = 10;
+                strokeRect(ctx,x,y,x+width,y+dy);
+                x += width;
+                strokeRect(ctx,x,y,x+width,y+dy);
+            }
+​
+            function memory(ctx,x,y) {
+                var dy = 40;
+                var dx = 40;
+​
+                for(var i=0;i<vmsize-1;i++) {
+                    strokeRect(ctx,x,y,x+width,y+dy);
+                    y += dy;
+                }
+            }
+​
+            function page(ctx,x,y) {
+                var dy = 20;
+                var dx = 40;
+​
+                for(var i=0;i<vmsize-1;i++) {
+                    strokeRect(ctx,x,y,x+width,y+dy);
+                    y += dy;
+                }
+                //return box;
+            }
+​
+​
+                </script>
+            </head>
+​
+    <body onload="draw()" onclick="MouseXY();" touchstart="TouchXY();">
+        <canvas id="canvas" width="600" height="300"></canvas>
+        <div id="Logical" style="position:absolute;font-size:12pt;"></div>
+        <div id="Physical" style="position:absolute;font-size:12pt;"></div>
+        <div id="Pagetable" style="position:absolute;font-size:12pt;"></div>
+        <div id="llow" style="position:absolute;font-size:12pt;"></div>
+        <div id="lhigh" style="position:absolute;font-size:12pt;"></div>
+        <div id="plow" style="position:absolute;font-size:12pt;"></div>
+        <div id="phigh" style="position:absolute;font-size:12pt;"></div>
+        <H1><font color="#c71585">Translation from Logical address to Physical Address</font></H1></div>
+        <H2><font color="#000000">使用方法</font></H2></div>
+        <H3><font color="#000000">左側のロジックアドレスをタップしてください。</font></H3></div>
+​
+    </body>
+</html>

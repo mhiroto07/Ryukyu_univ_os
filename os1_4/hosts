@@ -1,0 +1,1 @@
+vm ansible_user=root ansible_port=4022 ansible_host=localhost
